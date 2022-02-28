@@ -5,8 +5,9 @@ pragma solidity ^0.8.6;
  * @notice deploy any contract. Requires the contract byte code.
  */
 contract Deployer {
-    address owner;
+    address public owner;
 
+    event Deposit(address sender, uint256 value);
     event Deployed(address);
 
     modifier onlyOwner() {
@@ -18,7 +19,9 @@ contract Deployer {
         owner = msg.sender;
     }
 
-    fallback() external payable {}
+    receive() external payable {
+        emit Deposit(msg.sender, msg.value);
+    }
 
     /**
      * @dev Payable so we can send the function ether.
@@ -54,6 +57,13 @@ contract Deployer {
     {
         (bool sent, ) = _toCall.call{value: msg.value}(_data);
         require(sent, "call failed");
+    }
+
+    /**
+     * @dev Allows the owner address to be changed by the current owner account.
+     */
+    function setOwner(address _owner) external onlyOwner {
+        owner = _owner;
     }
 
     /**
